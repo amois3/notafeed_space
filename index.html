@@ -1,10 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>The Space — Your thought, as an art object.</title>
+    <meta name="description" content="A visual platform where every idea becomes a unique composition. Not a post — a fragment of thought with shape, color, and form. No algorithms, no ads, no noise." />
+    <meta name="keywords" content="visual platform, creative expression, art composition, idea visualization, digital art, thought canvas, visual social network" />
+    <meta name="author" content="The Space" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://notafeed.space/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://notafeed.space/" />
+    <meta property="og:title" content="The Space — Your thought, as an art object." />
+    <meta property="og:description" content="A visual platform where every idea becomes a unique composition. Not a post — a fragment of thought with shape, color, and form." />
+    <meta property="og:image" content="https://notafeed.space/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Space — visual platform for creative expression" />
+    <meta property="og:site_name" content="The Space" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Space — Your thought, as an art object." />
+    <meta name="twitter:description" content="A visual platform where every idea becomes a unique composition. Not a post — a fragment of thought with shape, color, and form." />
+    <meta name="twitter:image" content="https://notafeed.space/og-image.png" />
+    <meta name="twitter:image:alt" content="The Space — visual platform for creative expression" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
@@ -241,6 +275,89 @@
         if (mushroom) document.getElementById('process-sticker-3').innerHTML = getStickerSvg(mushroom, '#0D7A5F');
     </script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebApplication",
+                "@id": "https://notafeed.space/#webapp",
+                "name": "The Space",
+                "url": "https://notafeed.space",
+                "description": "A visual platform where every idea becomes a unique composition. Not a post — a fragment of thought with shape, color, and form.",
+                "applicationCategory": "CreativeApplication",
+                "operatingSystem": "Web",
+                "browserRequirements": "Requires JavaScript. Requires HTML5.",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "author": { "@id": "https://notafeed.space/#org" },
+                "screenshot": "https://notafeed.space/og-image.png"
+            },
+            {
+                "@type": "Organization",
+                "@id": "https://notafeed.space/#org",
+                "name": "The Space",
+                "url": "https://notafeed.space",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://notafeed.space/icons/icon-512.png",
+                    "width": 512,
+                    "height": 512
+                }
+            },
+            {
+                "@type": "WebSite",
+                "@id": "https://notafeed.space/#website",
+                "name": "The Space",
+                "url": "https://notafeed.space",
+                "description": "A visual platform where every idea becomes a unique composition.",
+                "publisher": { "@id": "https://notafeed.space/#org" },
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                        "@type": "EntryPoint",
+                        "urlTemplate": "https://notafeed.space/search.html?q={search_term_string}"
+                    },
+                    "query-input": "required name=search_term_string"
+                }
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "What is The Space?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The Space is a visual platform where every idea becomes a unique art composition. Instead of text posts, you create visual cards with color, typography, and form."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is The Space free?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. The Space is free with no ads, no algorithms, and no tracking. Your ideas, your space."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How does The Space work?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Pick a color, write your thought, choose a font — done. Every card becomes a unique visual composition that you can share, collect, and explore."
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
 </body>
 
 </html>

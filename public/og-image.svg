@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F5F4F1"/>
+      <stop offset="100%" stop-color="#E8E6E1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative cards -->
+  <!-- Card 1: deep plum -->
+  <rect x="60" y="80" width="280" height="350" rx="16" fill="#1A0D2E" opacity="0.9"/>
+  <text x="200" y="260" text-anchor="middle" font-family="Georgia,serif" font-size="18" fill="#F5F0E8" opacity="0.8">ideas have</text>
+  <text x="200" y="285" text-anchor="middle" font-family="Georgia,serif" font-size="18" fill="#F5F0E8" opacity="0.8">shape</text>
+
+  <!-- Card 2: electric blue -->
+  <rect x="120" y="200" width="220" height="280" rx="16" fill="#2B5BFF" opacity="0.85"/>
+  <text x="230" y="350" text-anchor="middle" font-family="monospace" font-size="14" fill="#FFFFFF" opacity="0.7">not a feed.</text>
+  <text x="230" y="372" text-anchor="middle" font-family="monospace" font-size="14" fill="#FFFFFF" opacity="0.7">a space.</text>
+
+  <!-- Card 3: warm cream -->
+  <rect x="870" y="100" width="260" height="330" rx="16" fill="#FDF6E3" opacity="0.9"/>
+  <text x="1000" y="270" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="#1A1A1A" opacity="0.6">every thought</text>
+  <text x="1000" y="293" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="#1A1A1A" opacity="0.6">has a form</text>
+
+  <!-- Card 4: vermillion -->
+  <rect x="820" y="250" width="200" height="250" rx="16" fill="#E8341A" opacity="0.8"/>
+
+  <!-- Logo mark -->
+  <g transform="translate(480, 180)">
+    <path d="M0 120 C40 -40, 200 -40, 240 120" stroke="rgba(43,91,255,0.3)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M0 0 C40 160, 200 160, 240 0" stroke="#2B5BFF" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Title -->
+  <text x="600" y="370" text-anchor="middle" font-family="Inter,Helvetica,Arial,sans-serif" font-weight="700" font-size="56" fill="#1A1A1A" letter-spacing="-1">the space</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="420" text-anchor="middle" font-family="Inter,Helvetica,Arial,sans-serif" font-weight="400" font-size="22" fill="#6B6B6B">Your thought, as an art object.</text>
+
+  <!-- URL -->
+  <text x="600" y="570" text-anchor="middle" font-family="Inter,Helvetica,Arial,sans-serif" font-weight="500" font-size="16" fill="#AAAAAA">notafeed.space</text>
+</svg>

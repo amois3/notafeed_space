@@ -1,0 +1,38 @@
+# robots.txt for notafeed.space (The Space)
+
+# Allow all search engine crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /settings
+Disallow: /compose_note
+
+User-agent: Bingbot
+Allow: /
+Disallow: /settings
+Disallow: /compose_note
+
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /compose_note
+Disallow: /login
+Disallow: /register
+
+# Block AI training scrapers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+# Allow AI search bots (they drive traffic)
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://notafeed.space/sitemap.xml
