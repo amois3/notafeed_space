@@ -27,11 +27,11 @@
         .card-thumb { border-radius: var(--radius-card); overflow: hidden; position: relative; box-shadow: var(--shadow-card); transition: transform var(--transition-hover); }
         .card-thumb:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); }
     </style>
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2B5BFF">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 
 <body class="font-sans min-h-screen" style="background:var(--bg-main);color:var(--text-primary)">
@@ -101,7 +101,7 @@
             }
         }
     </script>
-    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
 </body>
 
 </html>

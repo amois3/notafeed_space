@@ -4,3 +4,4 @@ dist/
 generate-icons.sh
 *.log
 .DS_Store
+.vercel
