@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Profile — The Space</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "accent": "#2B5BFF", "accent-hover": "#1A44E0", "accent-light": "#EEF2FF", "bg-main": "#F5F4F1", "border-c": "#E8E6E1", "txt-primary": "#1A1A1A", "txt-secondary": "#6B6B6B", "txt-muted": "#AAAAAA" },
+                    fontFamily: { "sans": ["Inter", "sans-serif"], "serif": ["Playfair Display", "serif"], "mono": ["JetBrains Mono", "monospace"], "display": ["Syne", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .tab-btn { padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; transition: all var(--transition-hover); }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-btn:hover { color: var(--text-primary); }
+        .masonry { columns: 3; column-gap: 12px; }
+        @media (max-width: 1024px) { .masonry { columns: 2; } }
+        @media (max-width: 640px) { .masonry { columns: 1; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 12px; }
+        .card-thumb { border-radius: var(--radius-card); overflow: hidden; position: relative; box-shadow: var(--shadow-card); transition: transform var(--transition-hover), box-shadow var(--transition-hover); }
+        .card-thumb:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); }
+        .bottom-nav { display: none; }
+        @media (max-width: 640px) {
+            .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); z-index: 100; padding: 8px 0 env(safe-area-inset-bottom, 8px); }
+        }
+    </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2B5BFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+
+<body class="font-sans min-h-screen" style="background: var(--bg-main); color: var(--text-primary)">
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 border-b" style="height:56px; background: var(--bg-main); border-color: var(--border)">
+        <div class="max-w-5xl mx-auto h-full px-5 flex items-center justify-between">
+            <a class="flex items-center gap-2 text-accent" href="home.html">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 20C6 4 18 4 22 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/><path d="M2 4C6 20 18 20 22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-lg font-semibold tracking-wide hidden sm:block" style="color:var(--text-primary)">the space</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <a href="home.html" class="text-sm font-medium flex items-center gap-1 hover:text-accent transition-colors" style="color:var(--text-secondary)">
+                    <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_back</span> <span class="hidden md:inline">Feed</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-5 py-8">
+        <!-- Profile Header -->
+        <div class="flex items-start gap-5 mb-8">
+            <div id="avatar" class="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center text-3xl font-bold text-accent flex-shrink-0">?</div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap mb-1">
+                    <h1 id="name" class="text-2xl font-bold">Loading...</h1>
+                    <button id="follow-btn" class="text-sm font-semibold text-white px-5 py-1.5 bg-accent hover:bg-accent-hover transition-colors" style="border-radius:50px">Follow</button>
+                </div>
+                <p id="username" class="text-sm mb-2" style="color:var(--text-muted)">@...</p>
+                <div class="flex items-center gap-5 text-sm">
+                    <span style="color:var(--text-secondary)"><strong id="stat-posts" style="color:var(--text-primary)">0</strong> cards</span>
+                    <span style="color:var(--text-secondary)"><strong id="stat-followers" style="color:var(--text-primary)">0</strong> followers</span>
+                    <span style="color:var(--text-secondary)"><strong id="stat-following" style="color:var(--text-primary)">0</strong> following</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b mb-6 flex gap-0" style="border-color:var(--border)">
+            <button class="tab-btn active" data-tab="posts">Cards</button>
+            <button class="tab-btn" data-tab="liked">Liked</button>
+            <button class="tab-btn" data-tab="collections">Collections</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-posts" class="tab-content">
+            <div id="posts-grid" class="masonry"></div>
+            <div id="posts-empty" class="hidden text-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3 block" style="color:var(--text-muted)" aria-hidden="true">edit</span>
+                <p class="font-medium mb-2" style="color:var(--text-secondary)">Nothing published yet.</p>
+            </div>
+        </div>
+        <div id="tab-liked" class="tab-content hidden">
+            <div id="liked-grid" class="masonry"></div>
+            <div id="liked-empty" class="hidden text-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3 block" style="color:var(--text-muted)" aria-hidden="true">favorite_border</span>
+                <p class="font-medium" style="color:var(--text-secondary)">Nothing liked yet.</p>
+            </div>
+        </div>
+        <div id="tab-collections" class="tab-content hidden">
+            <div id="collections-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+            <div id="collections-empty" class="hidden text-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3 block" style="color:var(--text-muted)" aria-hidden="true">collections_bookmark</span>
+                <p class="font-medium" style="color:var(--text-secondary)">No collections yet.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="bottom-nav items-center justify-around" aria-label="Mobile navigation">
+        <a href="home.html" class="flex flex-col items-center gap-0.5 py-1" style="color: var(--text-muted)">
+            <span class="material-symbols-outlined text-xl" aria-hidden="true">home</span>
+            <span class="text-[10px] font-medium">Home</span>
+        </a>
+        <a href="explore.html" class="flex flex-col items-center gap-0.5 py-1" style="color: var(--text-muted)">
+            <span class="material-symbols-outlined text-xl" aria-hidden="true">explore</span>
+            <span class="text-[10px] font-medium">Explore</span>
+        </a>
+        <a href="compose_note.html" class="flex items-center justify-center -mt-4 w-12 h-12 rounded-full bg-accent text-white shadow-lg" aria-label="Create a card">
+            <span class="material-symbols-outlined text-2xl" aria-hidden="true">add</span>
+        </a>
+        <a href="settings.html" class="flex flex-col items-center gap-0.5 py-1 text-accent">
+            <span class="material-symbols-outlined text-xl" aria-hidden="true">person</span>
+            <span class="text-[10px] font-medium">Profile</span>
+        </a>
+    </nav>
+
+    <script type="module">
+        import { getUserById, getCurrentUser, isFollowing, followUser, unfollowUser, getFollowers, getFollowing, getCollectionsByUser } from './src/localDb.js';
+        import { getAllPosts, getLikedPostsByUser, isLikedByCurrentUser, getLikesForPost, getPostsByUser, escapeHtml } from './src/posts.js';
+        import { STICKER_CATEGORIES, getStickerSvg } from './src/stickers.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('id');
+        const currentUser = getCurrentUser();
+
+        if (!userId) {
+            if (currentUser) userId = currentUser.id;
+            else { window.location.href = 'login.html'; }
+        }
+
+        const user = getUserById(userId);
+        if (!user) {
+            document.getElementById('name').textContent = 'User not found';
+            document.getElementById('username').textContent = '';
+        } else {
+            document.getElementById('avatar').textContent = user.fullname.charAt(0).toUpperCase();
+            document.getElementById('name').textContent = user.fullname;
+            document.getElementById('username').textContent = '@' + user.username;
+
+            const userPosts = getPostsByUser(userId);
+            const followers = getFollowers(userId);
+            const following = getFollowing(userId);
+            document.getElementById('stat-posts').textContent = userPosts.length;
+            document.getElementById('stat-followers').textContent = followers.length;
+            document.getElementById('stat-following').textContent = following.length;
+
+            // Follow button
+            const followBtn = document.getElementById('follow-btn');
+            if (currentUser && currentUser.id === userId) {
+                followBtn.style.display = 'none';
+            } else if (currentUser) {
+                function updateFollowBtn() {
+                    if (isFollowing(userId)) {
+                        followBtn.textContent = 'Following';
+                        followBtn.style.background = 'var(--border)';
+                        followBtn.style.color = 'var(--text-primary)';
+                    } else {
+                        followBtn.textContent = 'Follow';
+                        followBtn.style.background = '';
+                        followBtn.style.color = '';
+                        followBtn.className = 'text-sm font-semibold text-white px-5 py-1.5 bg-accent hover:bg-accent-hover transition-colors';
+                        followBtn.style.borderRadius = '50px';
+                    }
+                }
+                updateFollowBtn();
+                followBtn.addEventListener('click', () => {
+                    if (isFollowing(userId)) unfollowUser(userId);
+                    else followUser(userId);
+                    updateFollowBtn();
+                    document.getElementById('stat-followers').textContent = getFollowers(userId).length;
+                });
+            }
+
+            // Render card thumbnails
+            function renderCardGrid(gridId, emptyId, posts) {
+                const grid = document.getElementById(gridId);
+                const empty = document.getElementById(emptyId);
+                if (posts.length === 0) {
+                    grid.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                grid.classList.remove('hidden');
+                empty.classList.add('hidden');
+
+                grid.innerHTML = posts.map(post => {
+                    if (post.canvasData) {
+                        const bgColor = post.canvasData.bgColor || '#FFFFFF';
+                        const bgClass = post.canvasData.bgClass || '';
+                        const height = post.cardSize === 'tall' || post.cardSize === 'large' ? 280 : 180;
+                        const elements = (post.canvasData.elements || []).map(el => {
+                            if (el.type === 'text') {
+                                const fs = Math.min((el.fontSize || 20) * 0.65, 28);
+                                return `<div class="absolute max-w-[90%] text-center whitespace-pre-line" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);font-family:${el.font||'Inter'};font-size:${fs}px;color:${el.color||'#FFF'};font-weight:${el.fontWeight||'400'};${el.italic?'font-style:italic':''}">
+                                    ${escapeHtml(el.content)}</div>`;
+                            } else if (el.type === 'sticker') {
+                                const sticker = STICKER_CATEGORIES.flatMap(c => c.stickers).find(s => s.id === el.stickerId);
+                                if (!sticker) return '';
+                                return `<div class="absolute" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);width:36px;height:36px">${getStickerSvg(sticker, bgColor)}</div>`;
+                            }
+                            if (el.classes) {
+                                return `<div class="absolute max-w-[90%] text-center" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%)"><div class="${el.classes}" style="font-size:12px">${escapeHtml(el.content)}</div></div>`;
+                            }
+                            return '';
+                        }).join('');
+
+                        return `<div class="masonry-item"><a href="single_note.html?id=${post.id}" class="card-thumb block ${bgClass}" style="background-color:${bgColor};height:${height}px;position:relative">${elements}</a></div>`;
+                    }
+                    return `<div class="masonry-item"><a href="single_note.html?id=${post.id}" class="block bg-white border p-4" style="border-radius:var(--radius-card);border-color:var(--border)">
+                        ${post.headline ? `<h4 class="font-semibold text-sm mb-1">${escapeHtml(post.headline)}</h4>` : ''}
+                        <p class="text-xs line-clamp-3" style="color:var(--text-secondary)">${escapeHtml(post.content)}</p>
+                    </a></div>`;
+                }).join('');
+            }
+
+            renderCardGrid('posts-grid', 'posts-empty', userPosts);
+
+            const likedPosts = getLikedPostsByUser(userId);
+            renderCardGrid('liked-grid', 'liked-empty', likedPosts);
+
+            // Collections
+            const collections = getCollectionsByUser(userId);
+            const colGrid = document.getElementById('collections-grid');
+            const colEmpty = document.getElementById('collections-empty');
+            if (collections.length === 0) {
+                colGrid.classList.add('hidden');
+                colEmpty.classList.remove('hidden');
+            } else {
+                colGrid.innerHTML = collections.map(c => `
+                    <a href="collection.html?id=${c.id}" class="block bg-white border p-4 hover:shadow-md transition-all" style="border-radius:var(--radius-card);border-color:var(--border)">
+                        <h4 class="font-semibold text-sm mb-1">${escapeHtml(c.name)}</h4>
+                        <p class="text-xs" style="color:var(--text-muted)">${c.cardIds.length} cards</p>
+                    </a>`).join('');
+            }
+
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+                });
+            });
+        }
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+
+</html>

@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Compose — The Space</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@700&display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "accent": "#2B5BFF",
+                        "accent-hover": "#1A44E0",
+                        "accent-light": "#EEF2FF",
+                        "bg-main": "#F5F4F1",
+                        "border": "#E8E6E1",
+                        "txt-primary": "#1A1A1A",
+                        "txt-secondary": "#6B6B6B",
+                        "txt-muted": "#AAAAAA",
+                        "destructive": "#E53E3E",
+                        "success": "#2D9B5A"
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                        "display": ["Syne", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .canvas-element {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .canvas-element:focus {
+            outline: 2px dashed var(--accent);
+            outline-offset: 4px;
+        }
+
+        .canvas-element.selected {
+            outline: 2px solid var(--accent);
+            outline-offset: 4px;
+        }
+
+        .text-content:empty:before {
+            content: attr(placeholder);
+            color: var(--text-muted);
+            pointer-events: none;
+            display: block;
+        }
+
+        .text-content {
+            outline: none;
+        }
+
+        .tool-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 2px;
+        }
+
+        .preset-thumb {
+            width: 80px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            transition: border-color 180ms ease;
+            flex-shrink: 0;
+        }
+
+        .preset-thumb:hover {
+            border-color: var(--accent);
+        }
+
+        .preset-thumb .preset-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        .toolbar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .toolbar-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 180ms ease;
+            flex-shrink: 0;
+        }
+
+        .swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .swatch.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-light);
+        }
+
+        .swatch-sm {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+        }
+
+        .font-preview {
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            transition: all 180ms ease;
+            font-size: 14px;
+        }
+
+        .font-preview:hover,
+        .font-preview.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .size-btn-pill {
+            padding: 4px 14px;
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 180ms ease;
+        }
+
+        .size-btn-pill:hover,
+        .size-btn-pill.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .card-size-option {
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 180ms ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-size-option:hover,
+        .card-size-option.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .sticker-grid-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 180ms ease;
+        }
+        .sticker-grid-btn svg g { stroke: #6B6B6B; }
+
+        .sticker-grid-btn:hover {
+            background: #F0EEE9;
+        }
+        .sticker-grid-btn:hover svg g { stroke: #1A1A1A; }
+
+        .delete-handle {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--destructive);
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .canvas-element.selected .delete-handle {
+            display: flex;
+        }
+
+        .low-contrast {
+            opacity: 0.4;
+        }
+    </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2B5BFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+
+<body class="bg-bg-main font-sans text-txt-primary h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="w-full px-6 py-3 flex items-center justify-between bg-white z-50 border-b border-border"
+        style="height:56px">
+        <a class="flex items-center gap-2 text-txt-secondary hover:text-accent transition-colors font-medium text-sm"
+            href="home.html">
+            <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_back</span>
+            Cancel
+        </a>
+        <button id="publish-btn"
+            class="bg-accent text-white px-6 py-2.5 font-semibold text-sm tracking-wide hover:bg-accent-hover transition-all flex items-center gap-2"
+            style="border-radius:50px; box-shadow: var(--shadow-btn-primary)">
+            PUBLISH <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
+        </button>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Left Toolbar 240px -->
+        <aside id="toolbar"
+            class="w-[240px] bg-white border-r border-border flex flex-col z-40 overflow-y-auto toolbar-scroll">
+            <div class="p-4 flex flex-col gap-4">
+
+                <!-- PRESETS -->
+                <div>
+                    <div class="tool-section-title">Presets</div>
+                    <div class="flex flex-wrap gap-2" id="presets-container"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- ADD TEXT -->
+                <button id="tool-text"
+                    class="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-border hover:border-accent hover:bg-accent-light text-txt-primary transition-all group">
+                    <span class="material-symbols-outlined text-lg text-accent" aria-hidden="true">add</span>
+                    <span class="text-sm font-semibold">Add text</span>
+                </button>
+
+                <hr class="border-border" />
+
+                <!-- FONT -->
+                <div>
+                    <div class="tool-section-title">Font</div>
+                    <div class="flex flex-col gap-1.5" id="font-selector"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- TEXT SIZE -->
+                <div>
+                    <div class="tool-section-title">Text size</div>
+                    <div class="flex gap-2" id="text-size-selector"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- TEXT COLOR -->
+                <div>
+                    <div class="tool-section-title">Text color</div>
+                    <div class="grid grid-cols-4 gap-2" id="text-color-selector"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- STICKERS -->
+                <div>
+                    <div class="tool-section-title flex items-center justify-between">
+                        <span>Stickers</span>
+                        <div class="flex gap-1" id="sticker-size-toggle">
+                            <button
+                                class="text-[9px] font-bold px-2 py-0.5 rounded-full border border-border bg-white sticker-size-btn active"
+                                data-size="64">M</button>
+                            <button
+                                class="text-[9px] font-bold px-2 py-0.5 rounded-full border border-border bg-white sticker-size-btn"
+                                data-size="96">L</button>
+                        </div>
+                    </div>
+                    <div id="sticker-categories" class="flex flex-col gap-3"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- BACKGROUND -->
+                <div>
+                    <div class="tool-section-title">Card background</div>
+                    <div class="grid grid-cols-8 gap-1.5" id="bg-selector"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- CARD SIZE -->
+                <div>
+                    <div class="tool-section-title">Card size</div>
+                    <div class="grid grid-cols-4 gap-2" id="card-size-selector"></div>
+                </div>
+
+                <hr class="border-border" />
+
+                <!-- TAGS -->
+                <div>
+                    <div class="tool-section-title">Tags</div>
+                    <input id="post-tags" type="text" placeholder="Comma separated..."
+                        class="w-full bg-bg-main border border-border text-sm p-2.5 placeholder:text-txt-muted focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
+                        style="border-radius: var(--radius-input)" />
+                </div>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <section class="flex-1 bg-bg-main relative flex items-center justify-center p-4 md:p-8 overflow-auto">
+            <div id="artboard"
+                class="relative w-full max-w-[500px] aspect-[4/5] shadow-2xl overflow-hidden transition-all duration-300 border border-border"
+                style="border-radius: var(--radius-card); background-color: #FFFFFF;">
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { createPost, updatePost, getPostById, showToast } from './src/posts.js';
+        import { getCurrentUser } from './src/localDb.js';
+        import { STICKER_CATEGORIES, getStickerSvg, isDarkBackground, STICKER_SIZE } from './src/stickers.js';
+
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        }
+
+        // Edit mode
+        const editPostId = new URLSearchParams(window.location.search).get('edit');
+        let editingPost = null;
+        if (editPostId) {
+            editingPost = getPostById(editPostId);
+            if (!editingPost || editingPost.userId !== currentUser.id) {
+                editingPost = null;
+            }
+        }
+        if (editingPost) {
+            document.title = 'Edit Card — The Space';
+            document.getElementById('publish-btn').innerHTML = 'SAVE CHANGES <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>';
+        }
+
+        const artboard = document.getElementById('artboard');
+        let currentBgColor = '#FFFFFF';
+        let elementsData = [];
+        let elementCounter = 0;
+        let activeElement = null; // wrapper div for text or sticker
+        let currentFontIdx = 2; // Sans Clean default
+        let currentTextColor = '#1A1A1A';
+        let currentTextSize = 20;
+        let currentTextSizeLabel = 'M';
+        let selectedCardSize = 'small';
+        let currentStickerSize = 64;
+
+        // ── FONTS (§6) ──
+        const FONTS = [
+            { name: 'Serif Classic', font: 'Playfair Display', weight: 400, italic: false },
+            { name: 'Mono Code', font: 'JetBrains Mono', weight: 400, italic: false },
+            { name: 'Sans Clean', font: 'Inter', weight: 500, italic: false },
+            { name: 'Italic Drama', font: 'Playfair Display', weight: 400, italic: true },
+            { name: 'Display Bold', font: 'Syne', weight: 700, italic: false },
+        ];
+
+        // ── TEXT SIZES (§5.2) ──
+        const TEXT_SIZES = [
+            { label: 'S', size: 14 },
+            { label: 'M', size: 20 },
+            { label: 'L', size: 32 },
+            { label: 'XL', size: 48 },
+        ];
+
+        // ── TEXT COLORS (§9) ──
+        const TEXT_COLORS = [
+            { name: 'Pure White', hex: '#FFFFFF', forDark: true },
+            { name: 'Warm White', hex: '#F5F0E8', forDark: true },
+            { name: 'Light Gray', hex: '#D0CCCC', forDark: true },
+            { name: 'Soft Cream', hex: '#FAF0DC', forDark: true },
+            { name: 'Near Black', hex: '#1A1A1A', forDark: false },
+            { name: 'Dark Brown', hex: '#2D1B0E', forDark: false },
+            { name: 'Deep Navy', hex: '#0C1445', forDark: false },
+            { name: 'Charcoal', hex: '#3A3A3A', forDark: false },
+        ];
+
+        // ── BACKGROUNDS (§8) ──
+        const BG_COLORS = [
+            { name: 'Obsidian', hex: '#0D0D0D' },
+            { name: 'Midnight', hex: '#0F1923' },
+            { name: 'Forest Night', hex: '#0A1A0F' },
+            { name: 'Deep Plum', hex: '#1A0D2E' },
+            { name: 'Pure White', hex: '#FFFFFF' },
+            { name: 'Warm Cream', hex: '#FDF6E3' },
+            { name: 'Chalk', hex: '#F0EEE9' },
+            { name: 'Ice', hex: '#EDF2F7' },
+            { name: 'Electric', hex: '#2B5BFF' },
+            { name: 'Vermillion', hex: '#E8341A' },
+            { name: 'Emerald', hex: '#0D7A5F' },
+            { name: 'Violet', hex: '#6B21A8' },
+            { name: 'Terracotta', hex: '#C4622D' },
+            { name: 'Honey', hex: '#D4A017' },
+            { name: 'Sage', hex: '#5A7A5C' },
+            { name: 'Dusty Rose', hex: '#C4717E' },
+        ];
+
+        // ── CARD SIZE (§4.2) ──
+        const CARD_SIZES = [
+            { name: 'Small', value: 'small', w: 24, h: 24 },
+            { name: 'Wide', value: 'wide', w: 40, h: 24 },
+            { name: 'Tall', value: 'tall', w: 24, h: 40 },
+            { name: 'Large', value: 'large', w: 40, h: 40 },
+        ];
+
+        // ── PRESETS (§11) ──
+        const PRESETS = [
+            { name: 'Dark Manifesto', bg: '#0D0D0D', fontIdx: 4, color: '#FFFFFF', size: 32, sizeLabel: 'L' },
+            { name: 'Light Essay', bg: '#FDF6E3', fontIdx: 0, color: '#1A1A1A', size: 20, sizeLabel: 'M' },
+            { name: 'Code Drop', bg: '#0F1923', fontIdx: 1, color: '#D0CCCC', size: 20, sizeLabel: 'M' },
+            { name: 'Vivid Statement', bg: '#2B5BFF', fontIdx: 4, color: '#FFFFFF', size: 32, sizeLabel: 'L' },
+            { name: 'Quiet Thought', bg: '#F0EEE9', fontIdx: 3, color: '#3A3A3A', size: 20, sizeLabel: 'M' },
+            { name: 'Warm Note', bg: '#D4A017', fontIdx: 2, color: '#0C1445', size: 20, sizeLabel: 'M' },
+        ];
+
+        // ── HELPER: get the inner contenteditable from a text wrapper ──
+        function getTextEl(wrapper) {
+            return wrapper.querySelector('.text-content');
+        }
+
+        // ── HELPER: apply a style to text element + all its children (contenteditable fix) ──
+        function applyTextStyle(textEl, prop, value) {
+            textEl.style[prop] = value;
+            textEl.querySelectorAll('*').forEach(child => { child.style[prop] = value; });
+        }
+
+        // ── HELPER: apply all current font/size/color to a text element ──
+        function applyAllTextStyles(textEl, fontIdx, size, color) {
+            const f = FONTS[fontIdx];
+            applyTextStyle(textEl, 'fontFamily', f.font);
+            applyTextStyle(textEl, 'fontWeight', String(f.weight));
+            applyTextStyle(textEl, 'fontStyle', f.italic ? 'italic' : 'normal');
+            applyTextStyle(textEl, 'fontSize', size + 'px');
+            applyTextStyle(textEl, 'color', color);
+        }
+
+        // ── HIGHLIGHT TOOLBAR ──
+        function highlightActive(type, value) {
+            if (type === 'font') {
+                document.querySelectorAll('.font-preview').forEach(b => b.classList.toggle('active', b.dataset.fontIdx === String(value)));
+            } else if (type === 'size') {
+                document.querySelectorAll('.size-btn-pill').forEach(b => b.classList.toggle('active', b.dataset.sizeLabel === value));
+            } else if (type === 'textcolor') {
+                document.querySelectorAll('#text-color-selector .swatch').forEach(b => b.classList.toggle('active', b.dataset.color === value));
+            } else if (type === 'bg') {
+                document.querySelectorAll('#bg-selector .swatch').forEach(b => b.classList.toggle('active', b.dataset.bg === value));
+            }
+        }
+
+        // ── SYNC TOOLBAR FROM ELEMENT ──
+        function syncToolbarFromElement(wrapper) {
+            if (wrapper.dataset.type !== 'text') return;
+            const textEl = getTextEl(wrapper);
+            if (!textEl) return;
+
+            // Sync font
+            const elFont = textEl.style.fontFamily.replace(/['"]/g, '');
+            const elItalic = textEl.style.fontStyle === 'italic';
+            const idx = FONTS.findIndex(f => f.font === elFont && f.italic === elItalic);
+            if (idx >= 0) { currentFontIdx = idx; highlightActive('font', idx); }
+
+            // Sync size
+            const elSize = parseInt(textEl.style.fontSize);
+            const sizeMatch = TEXT_SIZES.find(s => s.size === elSize);
+            if (sizeMatch) { currentTextSize = sizeMatch.size; currentTextSizeLabel = sizeMatch.label; highlightActive('size', sizeMatch.label); }
+
+            // Sync color — need to match hex from rgb
+            const elColor = textEl.style.color;
+            const hex = rgbToHex(elColor);
+            if (hex) { currentTextColor = hex; highlightActive('textcolor', hex); }
+        }
+
+        function rgbToHex(color) {
+            if (!color) return null;
+            if (color.startsWith('#')) return color.toUpperCase();
+            const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (!m) return null;
+            return '#' + [m[1], m[2], m[3]].map(x => parseInt(x).toString(16).padStart(2, '0')).join('').toUpperCase();
+        }
+
+        // ── CONTRAST HINTS ──
+        function updateContrastHints() {
+            const dark = isDarkBackground(currentBgColor);
+            document.querySelectorAll('#text-color-selector .swatch').forEach(btn => {
+                const forDark = btn.dataset.forDark === 'true';
+                btn.classList.toggle('low-contrast', dark !== forDark);
+                const baseName = btn.title.replace(' ✓ recommended', '');
+                const recommended = (dark && forDark) || (!dark && !forDark);
+                btn.title = baseName + (recommended ? ' ✓ recommended' : '');
+            });
+        }
+
+        function updateStickerColors() {
+            document.querySelectorAll('#artboard [data-type="sticker"]').forEach(wrapper => {
+                const stickerId = wrapper.dataset.stickerId;
+                const sticker = STICKER_CATEGORIES.flatMap(c => c.stickers).find(s => s.id === stickerId);
+                if (sticker) {
+                    const stickerContent = wrapper.querySelector('.sticker-content');
+                    if (stickerContent) stickerContent.innerHTML = getStickerSvg(sticker, currentBgColor);
+                }
+            });
+        }
+
+        function checkSizeHint() {
+            if (activeElement && activeElement.dataset.type === 'text') {
+                const textEl = getTextEl(activeElement);
+                const text = textEl ? textEl.innerText || '' : '';
+                if (text.length > 80 && (currentTextSizeLabel === 'XL' || currentTextSizeLabel === 'L')) {
+                    showToast('Looks better at size M');
+                }
+            }
+        }
+
+        // ── PRESETS ──
+        const presetsContainer = document.getElementById('presets-container');
+        PRESETS.forEach(preset => {
+            const thumb = document.createElement('div');
+            thumb.className = 'preset-thumb';
+            thumb.style.backgroundColor = preset.bg;
+            thumb.title = preset.name;
+            const f = FONTS[preset.fontIdx];
+            const label = document.createElement('div');
+            label.className = 'preset-text';
+            label.style.fontFamily = f.font;
+            label.style.fontSize = Math.min(preset.size * 0.35, 14) + 'px';
+            label.style.color = preset.color;
+            label.style.fontWeight = f.weight;
+            if (f.italic) label.style.fontStyle = 'italic';
+            label.textContent = preset.name.split(' ').pop();
+            thumb.appendChild(label);
+            thumb.addEventListener('click', () => applyPreset(preset));
+            presetsContainer.appendChild(thumb);
+        });
+
+        function applyPreset(preset) {
+            artboard.innerHTML = '';
+            elementsData = [];
+            activeElement = null;
+
+            currentBgColor = preset.bg;
+            artboard.style.backgroundColor = preset.bg;
+            currentFontIdx = preset.fontIdx;
+            currentTextColor = preset.color;
+            currentTextSize = preset.size;
+            currentTextSizeLabel = preset.sizeLabel;
+
+            highlightActive('font', preset.fontIdx);
+            highlightActive('size', preset.sizeLabel);
+            highlightActive('textcolor', preset.color);
+            highlightActive('bg', preset.bg);
+            updateContrastHints();
+
+            addTextBlock();
+        }
+
+        // ── FONT SELECTOR ──
+        const fontSelector = document.getElementById('font-selector');
+        FONTS.forEach((f, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'font-preview';
+            btn.dataset.fontIdx = i;
+            btn.style.fontFamily = f.font;
+            btn.style.fontWeight = f.weight;
+            if (f.italic) btn.style.fontStyle = 'italic';
+            btn.innerHTML = `<span style="font-size:16px">Board</span> <span style="font-size:10px;color:var(--text-secondary);margin-left:4px;font-family:Inter;font-style:normal;font-weight:400">${f.name}</span>`;
+            btn.addEventListener('click', () => {
+                currentFontIdx = i;
+                highlightActive('font', i);
+                if (activeElement && activeElement.dataset.type === 'text') {
+                    const textEl = getTextEl(activeElement);
+                    if (textEl) {
+                        applyTextStyle(textEl, 'fontFamily', f.font);
+                        applyTextStyle(textEl, 'fontWeight', String(f.weight));
+                        applyTextStyle(textEl, 'fontStyle', f.italic ? 'italic' : 'normal');
+                    }
+                }
+            });
+            fontSelector.appendChild(btn);
+        });
+
+        // ── TEXT SIZE SELECTOR ──
+        const textSizeSelector = document.getElementById('text-size-selector');
+        TEXT_SIZES.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'size-btn-pill';
+            btn.textContent = s.label;
+            btn.dataset.sizeLabel = s.label;
+            if (s.label === 'M') btn.classList.add('active');
+            btn.addEventListener('click', () => {
+                currentTextSize = s.size;
+                currentTextSizeLabel = s.label;
+                highlightActive('size', s.label);
+                if (activeElement && activeElement.dataset.type === 'text') {
+                    const textEl = getTextEl(activeElement);
+                    if (textEl) applyTextStyle(textEl, 'fontSize', s.size + 'px');
+                }
+                checkSizeHint();
+            });
+            textSizeSelector.appendChild(btn);
+        });
+
+        // ── TEXT COLOR SELECTOR ──
+        const textColorSelector = document.getElementById('text-color-selector');
+        TEXT_COLORS.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'swatch swatch-sm';
+            btn.style.backgroundColor = c.hex;
+            if (c.hex === '#FFFFFF' || c.hex === '#F5F0E8' || c.hex === '#FAF0DC') {
+                btn.style.border = '2px solid var(--border)';
+            }
+            btn.title = c.name;
+            btn.dataset.color = c.hex;
+            btn.dataset.forDark = c.forDark;
+            if (c.hex === '#1A1A1A') btn.classList.add('active');
+            btn.addEventListener('click', () => {
+                currentTextColor = c.hex;
+                highlightActive('textcolor', c.hex);
+                if (activeElement && activeElement.dataset.type === 'text') {
+                    const textEl = getTextEl(activeElement);
+                    if (textEl) applyTextStyle(textEl, 'color', c.hex);
+                }
+                updateContrastHints();
+            });
+            textColorSelector.appendChild(btn);
+        });
+
+        // ── STICKERS ──
+        const stickerCategories = document.getElementById('sticker-categories');
+        STICKER_CATEGORIES.forEach(cat => {
+            const catDiv = document.createElement('div');
+            const catTitle = document.createElement('div');
+            catTitle.className = 'text-[9px] font-bold uppercase tracking-wider text-txt-muted mb-1.5';
+            catTitle.textContent = cat.name;
+            catDiv.appendChild(catTitle);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-4 gap-1.5';
+            cat.stickers.forEach(sticker => {
+                const btn = document.createElement('button');
+                btn.className = 'sticker-grid-btn';
+                btn.title = sticker.name;
+                btn.innerHTML = `<div style="width:24px;height:24px">${sticker.svg(false)}</div>`;
+                btn.addEventListener('click', () => addSticker(sticker));
+                grid.appendChild(btn);
+            });
+            catDiv.appendChild(grid);
+            stickerCategories.appendChild(catDiv);
+        });
+
+        document.querySelectorAll('.sticker-size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentStickerSize = parseInt(btn.dataset.size);
+                document.querySelectorAll('.sticker-size-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // ── BG SELECTOR ──
+        const bgSelector = document.getElementById('bg-selector');
+        BG_COLORS.forEach(bg => {
+            const btn = document.createElement('button');
+            btn.className = 'swatch swatch-sm';
+            btn.style.backgroundColor = bg.hex;
+            if (bg.hex === '#FFFFFF') btn.style.border = '2px solid var(--border)';
+            btn.title = bg.name;
+            btn.dataset.bg = bg.hex;
+            btn.addEventListener('click', () => {
+                currentBgColor = bg.hex;
+                artboard.style.backgroundColor = bg.hex;
+                highlightActive('bg', bg.hex);
+                updateContrastHints();
+                updateStickerColors();
+            });
+            bgSelector.appendChild(btn);
+        });
+
+        // ── CARD SIZE SELECTOR ──
+        const cardSizeSelector = document.getElementById('card-size-selector');
+        CARD_SIZES.forEach(cs => {
+            const btn = document.createElement('div');
+            btn.className = 'card-size-option';
+            if (cs.value === 'small') btn.classList.add('active');
+            btn.dataset.size = cs.value;
+            btn.innerHTML = `<div style="width:${cs.w}px;height:${cs.h}px;background:var(--border);border-radius:4px"></div><span style="font-size:10px;font-weight:600;color:var(--text-secondary)">${cs.name}</span>`;
+            btn.addEventListener('click', () => {
+                selectedCardSize = cs.value;
+                document.querySelectorAll('.card-size-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+            cardSizeSelector.appendChild(btn);
+        });
+
+        // ══════════════════════════════════════════
+        // ── ADD TEXT BLOCK ──
+        // Structure: wrapper.canvas-element > .text-content[contenteditable] + .delete-handle
+        // ══════════════════════════════════════════
+        function addTextBlock() {
+            const textCount = document.querySelectorAll('#artboard [data-type="text"]').length;
+            if (textCount >= 2) {
+                showToast('Max 2 text blocks per card.', true);
+                return;
+            }
+            const id = 'el_' + elementCounter++;
+            const f = FONTS[currentFontIdx];
+
+            // Wrapper — handles position, drag, selection
+            const wrapper = document.createElement('div');
+            wrapper.id = id;
+            wrapper.dataset.type = 'text';
+            wrapper.className = 'canvas-element';
+            wrapper.style.left = '50%';
+            wrapper.style.top = textCount === 0 ? '40%' : '65%';
+            wrapper.style.padding = '4px 8px';
+            wrapper.style.minWidth = '80px';
+            wrapper.style.maxWidth = '90%';
+
+            // Text content — contenteditable
+            const textEl = document.createElement('div');
+            textEl.className = 'text-content break-words text-center outline-none';
+            textEl.contentEditable = 'true';
+            textEl.setAttribute('placeholder', 'Type your thought...');
+            textEl.style.color = currentTextColor;
+            textEl.style.fontSize = currentTextSize + 'px';
+            textEl.style.fontFamily = f.font;
+            textEl.style.fontWeight = String(f.weight);
+            textEl.style.fontStyle = f.italic ? 'italic' : 'normal';
+
+            // Delete handle — sibling of text, NOT inside contenteditable
+            const deleteHandle = document.createElement('div');
+            deleteHandle.className = 'delete-handle';
+            deleteHandle.innerHTML = '✕';
+            deleteHandle.contentEditable = 'false';
+            deleteHandle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                wrapper.remove();
+                elementsData = elementsData.filter(d => d.id !== id);
+                if (activeElement === wrapper) activeElement = null;
+            });
+
+            wrapper.appendChild(textEl);
+            wrapper.appendChild(deleteHandle);
+
+            // Selection
+            textEl.addEventListener('focus', () => selectElement(wrapper));
+            textEl.addEventListener('click', (e) => { e.stopPropagation(); selectElement(wrapper); });
+            wrapper.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectElement(wrapper);
+                // Focus the text for editing
+                textEl.focus();
+            });
+
+            elementsData.push({ id, type: 'text', element: wrapper });
+            artboard.appendChild(wrapper);
+            textEl.focus();
+            selectElement(wrapper);
+            makeDraggable(wrapper, textEl);
+        }
+
+        document.getElementById('tool-text').addEventListener('click', () => addTextBlock());
+
+        // ── ADD STICKER ──
+        function addSticker(sticker) {
+            const stickerCount = document.querySelectorAll('#artboard [data-type="sticker"]').length;
+            if (stickerCount >= 3) {
+                showToast('Max 3 stickers per card.', true);
+                return;
+            }
+            const id = 'el_' + elementCounter++;
+            const wrapper = document.createElement('div');
+            wrapper.id = id;
+            wrapper.dataset.type = 'sticker';
+            wrapper.dataset.stickerId = sticker.id;
+            wrapper.className = 'canvas-element';
+            wrapper.style.width = currentStickerSize + 'px';
+            wrapper.style.height = currentStickerSize + 'px';
+
+            const stickerContent = document.createElement('div');
+            stickerContent.className = 'sticker-content';
+            stickerContent.style.width = '100%';
+            stickerContent.style.height = '100%';
+            stickerContent.innerHTML = getStickerSvg(sticker, currentBgColor);
+
+            const jitterX = 25 + Math.random() * 50;
+            const jitterY = 25 + Math.random() * 50;
+            wrapper.style.left = `${jitterX}%`;
+            wrapper.style.top = `${jitterY}%`;
+
+            const deleteHandle = document.createElement('div');
+            deleteHandle.className = 'delete-handle';
+            deleteHandle.innerHTML = '✕';
+            deleteHandle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                wrapper.remove();
+                elementsData = elementsData.filter(d => d.id !== id);
+                if (activeElement === wrapper) activeElement = null;
+            });
+
+            wrapper.appendChild(stickerContent);
+            wrapper.appendChild(deleteHandle);
+            wrapper.addEventListener('click', (e) => { e.stopPropagation(); selectElement(wrapper); });
+
+            elementsData.push({ id, type: 'sticker', stickerId: sticker.id, element: wrapper });
+            artboard.appendChild(wrapper);
+            selectElement(wrapper);
+            makeDraggable(wrapper);
+        }
+
+        // ── SELECTION ──
+        function selectElement(wrapper) {
+            document.querySelectorAll('.canvas-element').forEach(e => e.classList.remove('selected'));
+            wrapper.classList.add('selected');
+            activeElement = wrapper;
+            syncToolbarFromElement(wrapper);
+        }
+
+        artboard.addEventListener('click', (e) => {
+            if (e.target === artboard) {
+                document.querySelectorAll('.canvas-element').forEach(e => e.classList.remove('selected'));
+                activeElement = null;
+            }
+        });
+
+        // ── DRAG (single global handler, no leaks) ──
+        let dragState = null; // { wrapper, startX, startY, startLeft, startTop }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!dragState) return;
+            const rect = artboard.getBoundingClientRect();
+            const dx = ((e.clientX - dragState.startX) / rect.width) * 100;
+            const dy = ((e.clientY - dragState.startY) / rect.height) * 100;
+            dragState.wrapper.style.left = Math.max(5, Math.min(95, dragState.startLeft + dx)) + '%';
+            dragState.wrapper.style.top = Math.max(5, Math.min(95, dragState.startTop + dy)) + '%';
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (!dragState) return;
+            const touch = e.touches[0];
+            const rect = artboard.getBoundingClientRect();
+            const dx = ((touch.clientX - dragState.startX) / rect.width) * 100;
+            const dy = ((touch.clientY - dragState.startY) / rect.height) * 100;
+            dragState.wrapper.style.left = Math.max(5, Math.min(95, dragState.startLeft + dx)) + '%';
+            dragState.wrapper.style.top = Math.max(5, Math.min(95, dragState.startTop + dy)) + '%';
+        }, { passive: true });
+        document.addEventListener('mouseup', () => { dragState = null; });
+        document.addEventListener('touchend', () => { dragState = null; });
+
+        function makeDraggable(wrapper, textEl) {
+            function startDrag(clientX, clientY) {
+                if (textEl && document.activeElement === textEl) return;
+                dragState = {
+                    wrapper,
+                    startX: clientX,
+                    startY: clientY,
+                    startLeft: parseFloat(wrapper.style.left),
+                    startTop: parseFloat(wrapper.style.top)
+                };
+            }
+            wrapper.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('delete-handle')) return;
+                startDrag(e.clientX, e.clientY);
+            });
+            wrapper.addEventListener('touchstart', (e) => {
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+        }
+
+        // ── INPUT EVENTS ──
+        artboard.addEventListener('input', () => checkSizeHint());
+
+        // ── PUBLISH ──
+        document.getElementById('publish-btn').addEventListener('click', () => {
+            const serializedElements = elementsData.map(data => {
+                const wrapper = data.element;
+                if (data.type === 'text') {
+                    const textEl = getTextEl(wrapper);
+                    if (!textEl) return null;
+                    const text = textEl.innerText.trim();
+                    if (!text) return null;
+                    return {
+                        type: 'text',
+                        content: text,
+                        font: textEl.style.fontFamily.replace(/['"]/g, ''),
+                        fontSize: parseInt(textEl.style.fontSize),
+                        color: rgbToHex(textEl.style.color) || textEl.style.color,
+                        left: wrapper.style.left,
+                        top: wrapper.style.top,
+                        italic: textEl.style.fontStyle === 'italic',
+                        fontWeight: textEl.style.fontWeight
+                    };
+                } else {
+                    return {
+                        type: 'sticker',
+                        stickerId: data.stickerId,
+                        left: wrapper.style.left,
+                        top: wrapper.style.top
+                    };
+                }
+            }).filter(Boolean);
+
+            if (serializedElements.length === 0) {
+                showToast('Add some text or stickers first.', true);
+                return;
+            }
+
+            const canvasData = {
+                bgColor: currentBgColor,
+                elements: serializedElements
+            };
+
+            const tagsStr = document.getElementById('post-tags').value || '';
+            const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
+
+            try {
+                if (editingPost) {
+                    updatePost(editingPost.id, { canvasData, cardSize: selectedCardSize }, tags);
+                    showToast('Card updated!');
+                    setTimeout(() => { window.location.href = 'single_note.html?id=' + editingPost.id; }, 500);
+                } else {
+                    createPost({ canvasData, cardSize: selectedCardSize }, tags);
+                    showToast('Card published!');
+                    setTimeout(() => { window.location.href = 'home.html'; }, 500);
+                }
+            } catch (err) {
+                showToast(err.message, true);
+            }
+        });
+
+        // ── Keyboard shortcuts ──
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.canvas-element').forEach(el => el.classList.remove('selected'));
+                activeElement = null;
+            }
+            if ((e.key === 'Delete' || e.key === 'Backspace') && activeElement && activeElement.dataset.type === 'sticker') {
+                activeElement.remove();
+                elementsData = elementsData.filter(d => d.element !== activeElement);
+                activeElement = null;
+            }
+        });
+
+        // Init default highlights
+        highlightActive('font', currentFontIdx);
+        updateContrastHints();
+
+        // ── EDIT MODE: prefill canvas ──
+        if (editingPost) {
+            // Set background
+            if (editingPost.canvasData) {
+                currentBgColor = editingPost.canvasData.bgColor || '#FFFFFF';
+                artboard.style.backgroundColor = currentBgColor;
+                highlightActive('bg', currentBgColor);
+                updateContrastHints();
+
+                // Set card size
+                selectedCardSize = editingPost.cardSize || 'small';
+                document.querySelectorAll('.card-size-option').forEach(b => {
+                    b.classList.toggle('active', b.dataset.size === selectedCardSize);
+                });
+
+                // Recreate elements
+                (editingPost.canvasData.elements || []).forEach(el => {
+                    if (el.type === 'text') {
+                        // Find matching font
+                        const fontIdx = FONTS.findIndex(f => f.font === (el.font || 'Inter') && f.italic === !!el.italic);
+                        if (fontIdx >= 0) currentFontIdx = fontIdx;
+                        currentTextColor = el.color || '#1A1A1A';
+                        currentTextSize = el.fontSize || 20;
+                        const sizeMatch = TEXT_SIZES.find(s => s.size === currentTextSize);
+                        if (sizeMatch) currentTextSizeLabel = sizeMatch.label;
+
+                        addTextBlock();
+                        // Get last added text wrapper
+                        const wrapper = elementsData[elementsData.length - 1].element;
+                        const textEl = getTextEl(wrapper);
+                        textEl.innerText = el.content || '';
+                        // Position
+                        wrapper.style.left = el.left || '50%';
+                        wrapper.style.top = el.top || '40%';
+                        // Apply styles
+                        applyAllTextStyles(textEl, currentFontIdx, currentTextSize, currentTextColor);
+                    } else if (el.type === 'sticker') {
+                        const sticker = STICKER_CATEGORIES.flatMap(c => c.stickers).find(s => s.id === el.stickerId);
+                        if (sticker) {
+                            addSticker(sticker);
+                            const wrapper = elementsData[elementsData.length - 1].element;
+                            wrapper.style.left = el.left || '50%';
+                            wrapper.style.top = el.top || '50%';
+                        }
+                    }
+                });
+
+                highlightActive('font', currentFontIdx);
+                highlightActive('size', currentTextSizeLabel);
+                highlightActive('textcolor', currentTextColor);
+            }
+
+            // Set tags
+            if (editingPost.tags?.length > 0) {
+                document.getElementById('post-tags').value = editingPost.tags.join(', ');
+            }
+
+            // Deselect all
+            document.querySelectorAll('.canvas-element').forEach(e => e.classList.remove('selected'));
+            activeElement = null;
+        }
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+
+</html>

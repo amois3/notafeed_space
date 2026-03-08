@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Collection — The Space</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "accent": "#2B5BFF", "accent-hover": "#1A44E0", "accent-light": "#EEF2FF", "bg-main": "#F5F4F1", "border-c": "#E8E6E1", "txt-primary": "#1A1A1A", "txt-secondary": "#6B6B6B", "txt-muted": "#AAAAAA" },
+                    fontFamily: { "sans": ["Inter", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .masonry { columns: 3; column-gap: 12px; }
+        @media (max-width: 1024px) { .masonry { columns: 2; } }
+        @media (max-width: 640px) { .masonry { columns: 1; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 12px; }
+        .card-thumb { border-radius: var(--radius-card); overflow: hidden; position: relative; box-shadow: var(--shadow-card); transition: transform var(--transition-hover); }
+        .card-thumb:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); }
+    </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2B5BFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+
+<body class="font-sans min-h-screen" style="background:var(--bg-main);color:var(--text-primary)">
+    <header class="sticky top-0 z-50 border-b" style="height:56px;background:var(--bg-main);border-color:var(--border)">
+        <div class="max-w-5xl mx-auto h-full px-5 flex items-center justify-between">
+            <a href="javascript:history.back()" class="flex items-center gap-2 text-sm font-medium" style="color:var(--text-secondary)">
+                <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_back</span> Back
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-5 py-8">
+        <div id="header-section" class="mb-8"></div>
+        <div id="cards-grid" class="masonry"></div>
+        <div id="empty-state" class="hidden flex flex-col items-center py-16">
+            <span class="material-symbols-outlined text-5xl mb-3" style="color:var(--text-muted)" aria-hidden="true">collections_bookmark</span>
+            <p class="font-medium" style="color:var(--text-secondary)">This collection is empty.</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { getCollectionById, getUserById } from './src/localDb.js';
+        import { getPostById, escapeHtml } from './src/posts.js';
+        import { STICKER_CATEGORIES, getStickerSvg, isDarkBackground } from './src/stickers.js';
+
+        const colId = new URLSearchParams(window.location.search).get('id');
+        if (!colId) {
+            document.getElementById('header-section').innerHTML = '<h1 class="text-2xl font-bold">Collection not found</h1>';
+        } else {
+            const col = getCollectionById(colId);
+            if (!col) {
+                document.getElementById('header-section').innerHTML = '<h1 class="text-2xl font-bold">Collection not found</h1>';
+            } else {
+                const owner = getUserById(col.userId);
+                document.getElementById('header-section').innerHTML = `
+                    <h1 class="text-2xl font-bold mb-1">${escapeHtml(col.name)}</h1>
+                    ${col.description ? `<p class="text-sm mb-2" style="color:var(--text-secondary)">${escapeHtml(col.description)}</p>` : ''}
+                    <p class="text-xs" style="color:var(--text-muted)">by @${owner ? owner.username : 'unknown'} · ${col.cardIds.length} cards</p>`;
+
+                const posts = col.cardIds.map(id => getPostById(id)).filter(Boolean);
+                if (posts.length === 0) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                } else {
+                    document.getElementById('cards-grid').innerHTML = posts.map(post => {
+                        if (post.canvasData) {
+                            const bgColor = post.canvasData.bgColor || '#FFF';
+                            const height = post.cardSize === 'tall' || post.cardSize === 'large' ? 280 : 180;
+                            const elements = (post.canvasData.elements || []).map(el => {
+                                if (el.type === 'text') {
+                                    return `<div class="absolute max-w-[90%] text-center whitespace-pre-line" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);font-family:${el.font||'Inter'};font-size:${Math.min((el.fontSize||20)*0.65,28)}px;color:${el.color||'#FFF'};font-weight:${el.fontWeight||'400'};${el.italic?'font-style:italic;':''}">${escapeHtml(el.content)}</div>`;
+                                }
+                                if (el.type === 'sticker') {
+                                    const sticker = STICKER_CATEGORIES.flatMap(c => c.stickers).find(s => s.id === el.stickerId);
+                                    if (!sticker) return '';
+                                    return `<div class="absolute" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);width:36px;height:36px">${getStickerSvg(sticker, bgColor)}</div>`;
+                                }
+                                return '';
+                            }).join('');
+                            return `<div class="masonry-item"><a href="single_note.html?id=${post.id}" class="card-thumb block" style="background-color:${bgColor};height:${height}px;position:relative">${elements}</a></div>`;
+                        }
+                        return `<div class="masonry-item"><a href="single_note.html?id=${post.id}" class="block bg-white border p-4" style="border-radius:var(--radius-card);border-color:var(--border)">
+                            ${post.headline ? `<h4 class="font-semibold text-sm mb-1">${escapeHtml(post.headline)}</h4>` : ''}
+                            <p class="text-xs line-clamp-3" style="color:var(--text-secondary)">${escapeHtml(post.content)}</p>
+                        </a></div>`;
+                    }).join('');
+                }
+            }
+        }
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+
+</html>

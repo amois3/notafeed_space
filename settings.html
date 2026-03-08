@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>My Profile — The Space</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "accent": "#2B5BFF", "accent-hover": "#1A44E0", "accent-light": "#EEF2FF", "bg-main": "#F5F4F1", "border-c": "#E8E6E1", "txt-primary": "#1A1A1A", "txt-secondary": "#6B6B6B", "txt-muted": "#AAAAAA", "destructive": "#E53E3E" },
+                    fontFamily: { "sans": ["Inter", "sans-serif"], "serif": ["Playfair Display", "serif"], "mono": ["JetBrains Mono", "monospace"], "display": ["Syne", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .tab-btn { padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; transition: all var(--transition-hover); }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .masonry { columns: 3; column-gap: 12px; }
+        @media (max-width: 1024px) { .masonry { columns: 2; } }
+        @media (max-width: 640px) { .masonry { columns: 1; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 12px; }
+        .card-thumb { border-radius: var(--radius-card); overflow: hidden; position: relative; box-shadow: var(--shadow-card); transition: transform var(--transition-hover); }
+        .card-thumb:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); }
+        .card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0; transition: opacity 180ms ease; border-radius: var(--radius-card); z-index: 5; }
+        .masonry-item:hover .card-overlay { opacity: 1; }
+        .card-overlay-btn { display: flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: transform 180ms ease; }
+        .card-overlay-btn:hover { transform: scale(1.05); }
+        .bottom-nav { display: none; }
+        @media (max-width: 640px) {
+            .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); z-index: 100; padding: 8px 0 env(safe-area-inset-bottom, 8px); }
+        }
+    </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2B5BFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+
+<body class="font-sans min-h-screen" style="background: var(--bg-main); color: var(--text-primary)">
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 border-b" style="height:56px; background: var(--bg-main); border-color: var(--border)">
+        <div class="max-w-4xl mx-auto h-full px-5 flex items-center justify-between">
+            <a class="flex items-center gap-2 text-accent" href="home.html">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 20C6 4 18 4 22 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/><path d="M2 4C6 20 18 20 22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-lg font-semibold tracking-wide hidden sm:block" style="color:var(--text-primary)">the space</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <button id="settings-gear" class="p-2 rounded-full hover:bg-accent-light transition-colors" aria-label="Settings">
+                    <span class="material-symbols-outlined text-xl" style="color:var(--text-secondary)" aria-hidden="true">settings</span>
+                </button>
+                <a href="compose_note.html" class="text-sm font-semibold text-white px-4 py-2 bg-accent hover:bg-accent-hover transition-colors flex items-center gap-1.5" style="border-radius:50px" aria-label="Create a card">
+                    <span class="material-symbols-outlined text-base" aria-hidden="true">add</span> <span class="hidden md:inline">Create a card</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-5 py-8">
+        <!-- Profile Header -->
+        <div class="flex items-center gap-5 mb-8">
+            <div id="avatar" class="w-20 h-20 rounded-full bg-accent/10 flex items-center justify-center text-3xl font-bold text-accent flex-shrink-0">?</div>
+            <div class="flex-1 min-w-0">
+                <h1 id="name" class="text-2xl font-bold mb-0.5">Loading...</h1>
+                <p id="username-display" class="text-sm mb-2" style="color:var(--text-muted)">@...</p>
+                <div class="flex items-center gap-5 text-sm">
+                    <span style="color:var(--text-secondary)"><strong id="stat-posts" style="color:var(--text-primary)">0</strong> cards</span>
+                    <span style="color:var(--text-secondary)"><strong id="stat-likes" style="color:var(--text-primary)">0</strong> liked</span>
+                    <span style="color:var(--text-secondary)"><strong id="stat-saved" style="color:var(--text-primary)">0</strong> saved</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b mb-6 flex gap-0" style="border-color:var(--border)">
+            <button class="tab-btn active" data-tab="posts">Cards</button>
+            <button class="tab-btn" data-tab="liked">Liked</button>
+            <button class="tab-btn" data-tab="saved">Saved</button>
+            <button class="tab-btn" data-tab="collections">Collections</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-posts" class="tab-content">
+            <div id="posts-grid" class="masonry"></div>
+            <div id="posts-empty" class="hidden flex flex-col items-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3" style="color:var(--text-muted)" aria-hidden="true">edit</span>
+                <p class="font-medium mb-2" style="color:var(--text-secondary)">Nothing published yet.</p>
+                <a href="compose_note.html" class="text-sm font-semibold text-white px-5 py-2.5 bg-accent hover:bg-accent-hover transition-colors" style="border-radius:50px">Create a card</a>
+            </div>
+        </div>
+        <div id="tab-liked" class="tab-content hidden">
+            <div id="liked-grid" class="masonry"></div>
+            <div id="liked-empty" class="hidden flex flex-col items-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3" style="color:var(--text-muted)" aria-hidden="true">favorite_border</span>
+                <p class="font-medium mb-2" style="color:var(--text-secondary)">Nothing liked yet.</p>
+                <a href="explore.html" class="text-sm font-semibold text-white px-5 py-2.5 bg-accent hover:bg-accent-hover transition-colors" style="border-radius:50px">Explore the Space</a>
+            </div>
+        </div>
+        <div id="tab-saved" class="tab-content hidden">
+            <div id="saved-grid" class="masonry"></div>
+            <div id="saved-empty" class="hidden flex flex-col items-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3" style="color:var(--text-muted)" aria-hidden="true">bookmark_border</span>
+                <p class="font-medium mb-2" style="color:var(--text-secondary)">No saved cards yet.</p>
+                <a href="explore.html" class="text-sm font-semibold text-white px-5 py-2.5 bg-accent hover:bg-accent-hover transition-colors" style="border-radius:50px">Explore the Space</a>
+            </div>
+        </div>
+        <div id="tab-collections" class="tab-content hidden">
+            <div class="mb-4">
+                <button id="new-collection-btn" class="text-sm font-semibold text-accent px-4 py-2 border border-accent hover:bg-accent-light transition-colors flex items-center gap-1.5" style="border-radius:50px">
+                    <span class="material-symbols-outlined text-base" aria-hidden="true">add</span> New Collection
+                </button>
+            </div>
+            <div id="collections-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+            <div id="collections-empty" class="hidden flex flex-col items-center py-16">
+                <span class="material-symbols-outlined text-5xl mb-3" style="color:var(--text-muted)" aria-hidden="true">collections_bookmark</span>
+                <p class="font-medium mb-2" style="color:var(--text-secondary)">No collections yet.</p>
+                <button onclick="document.getElementById('new-collection-btn').click()" class="text-sm font-semibold text-accent hover:underline">Create a collection</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-[200] hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="settings-overlay"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white overflow-y-auto" style="box-shadow: var(--shadow-modal)">
+            <div class="p-6 md:p-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 id="settings-title" class="text-xl font-bold">Settings</h2>
+                    <button id="close-settings" class="w-10 h-10 rounded-full hover:bg-accent-light flex items-center justify-center transition-colors" aria-label="Close settings">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                </div>
+                <div class="flex flex-col gap-5">
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider mb-1 block" style="color:var(--text-muted)">Full Name</label>
+                        <input id="input-fullname" type="text" class="w-full bg-bg-main border text-sm px-4 py-3 outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent" style="border-color:var(--border);border-radius:var(--radius-input)" />
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider mb-1 block" style="color:var(--text-muted)">Username</label>
+                        <input id="input-username" type="text" class="w-full bg-bg-main border text-sm px-4 py-3 outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent" style="border-color:var(--border);border-radius:var(--radius-input)" />
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider mb-1 block" style="color:var(--text-muted)">Email</label>
+                        <input id="input-email" type="email" disabled class="w-full bg-bg-main border text-sm px-4 py-3 opacity-60 cursor-not-allowed" style="border-color:var(--border);border-radius:var(--radius-input)" />
+                    </div>
+                    <button id="save-btn" class="w-full bg-accent text-white font-semibold py-3 hover:bg-accent-hover transition-colors text-sm" style="border-radius:var(--radius-input);box-shadow:var(--shadow-btn-primary)">Save Changes</button>
+                    <div class="border-t pt-5 mt-2 flex flex-col gap-3" style="border-color:var(--border)">
+                        <button id="logout-btn" class="w-full flex items-center gap-3 p-4 border hover:bg-accent-light transition-colors text-left" style="border-radius:var(--radius-input);border-color:var(--border)">
+                            <span class="material-symbols-outlined" style="color:var(--text-muted)" aria-hidden="true">logout</span>
+                            <div><span class="font-semibold text-sm block">Log Out</span><span class="text-xs" style="color:var(--text-muted)">Sign out on this device.</span></div>
+                        </button>
+                        <button id="delete-btn" class="w-full flex items-center gap-3 p-4 border hover:bg-red-50 transition-colors text-left" style="border-radius:var(--radius-input);border-color:#fecaca">
+                            <span class="material-symbols-outlined text-destructive" aria-hidden="true">delete_forever</span>
+                            <div><span class="font-semibold text-sm text-destructive block">Delete Account</span><span class="text-xs" style="color:var(--text-muted)">Remove account and all data.</span></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Collection Modal -->
+    <div id="collection-modal" class="fixed inset-0 z-[200] hidden" role="dialog" aria-modal="true" aria-labelledby="collection-modal-title">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="collection-overlay"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-sm p-6" style="border-radius:var(--radius-modal);box-shadow:var(--shadow-modal)">
+                <h3 id="collection-modal-title" class="text-lg font-bold mb-4">New Collection</h3>
+                <input id="collection-name" type="text" placeholder="Collection name" class="w-full border text-sm px-4 py-3 mb-3 outline-none focus:ring-2 focus:ring-accent/30" style="border-color:var(--border);border-radius:var(--radius-input)" />
+                <textarea id="collection-desc" rows="2" maxlength="120" placeholder="Description (optional)" class="w-full border text-sm px-4 py-3 mb-4 resize-none outline-none focus:ring-2 focus:ring-accent/30" style="border-color:var(--border);border-radius:var(--radius-input)"></textarea>
+                <div class="flex gap-3 justify-end">
+                    <button id="cancel-collection" class="text-sm font-medium px-4 py-2" style="color:var(--text-secondary)">Cancel</button>
+                    <button id="create-collection" class="text-sm font-semibold text-white px-5 py-2 bg-accent hover:bg-accent-hover transition-colors" style="border-radius:50px">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="bottom-nav items-center justify-around" aria-label="Mobile navigation">
+        <a href="home.html" class="flex flex-col items-center gap-0.5 py-1" style="color:var(--text-muted)"><span class="material-symbols-outlined text-xl" aria-hidden="true">home</span><span class="text-[10px] font-medium">Home</span></a>
+        <a href="explore.html" class="flex flex-col items-center gap-0.5 py-1" style="color:var(--text-muted)"><span class="material-symbols-outlined text-xl" aria-hidden="true">explore</span><span class="text-[10px] font-medium">Explore</span></a>
+        <a href="compose_note.html" class="flex items-center justify-center -mt-4 w-12 h-12 rounded-full bg-accent text-white shadow-lg" aria-label="Create a card"><span class="material-symbols-outlined text-2xl" aria-hidden="true">add</span></a>
+        <a href="settings.html" class="flex flex-col items-center gap-0.5 py-1 text-accent"><span class="material-symbols-outlined text-xl" aria-hidden="true">person</span><span class="text-[10px] font-medium">Profile</span></a>
+    </nav>
+
+    <script type="module">
+        import { logoutUser, getCurrentUser, createCollection, getCollectionsByUser } from './src/localDb.js';
+        import { getPostsByUser, getLikedPostsByUser, getSavedByCurrentUser, deletePost, showToast, escapeHtml } from './src/posts.js';
+        import { STICKER_CATEGORIES, getStickerSvg } from './src/stickers.js';
+
+        const currentUser = getCurrentUser();
+        if (!currentUser) { window.location.href = 'login.html'; }
+
+        document.getElementById('avatar').textContent = currentUser.fullname.charAt(0).toUpperCase();
+        document.getElementById('name').textContent = currentUser.fullname;
+        document.getElementById('username-display').textContent = '@' + currentUser.username;
+        document.getElementById('input-fullname').value = currentUser.fullname;
+        document.getElementById('input-username').value = currentUser.username;
+        document.getElementById('input-email').value = currentUser.email;
+
+        const myPosts = getPostsByUser(currentUser.id);
+        const likedPosts = getLikedPostsByUser(currentUser.id);
+        const savedPosts = getSavedByCurrentUser();
+        document.getElementById('stat-posts').textContent = myPosts.length;
+        document.getElementById('stat-likes').textContent = likedPosts.length;
+        document.getElementById('stat-saved').textContent = savedPosts.length;
+
+        function renderCardGrid(gridId, emptyId, posts, isOwn = false) {
+            const grid = document.getElementById(gridId);
+            const empty = document.getElementById(emptyId);
+            if (posts.length === 0) { grid.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+            grid.classList.remove('hidden'); empty.classList.add('hidden');
+
+            const overlay = (postId) => isOwn ? `<div class="card-overlay">
+                <a href="compose_note.html?edit=${postId}" class="card-overlay-btn" style="background:white;color:var(--text-primary)" onclick="event.stopPropagation()">
+                    <span class="material-symbols-outlined" style="font-size:16px">edit</span> Edit
+                </a>
+                <button class="card-overlay-btn card-delete-btn" data-post-id="${postId}" style="background:var(--destructive);color:white">
+                    <span class="material-symbols-outlined" style="font-size:16px">delete</span> Delete
+                </button>
+            </div>` : '';
+
+            grid.innerHTML = posts.map(post => {
+                if (post.canvasData) {
+                    const bgColor = post.canvasData.bgColor || '#FFFFFF';
+                    const bgClass = post.canvasData.bgClass || '';
+                    const height = post.cardSize === 'tall' || post.cardSize === 'large' ? 280 : 180;
+                    const elements = (post.canvasData.elements || []).map(el => {
+                        if (el.type === 'text') {
+                            const fs = Math.min((el.fontSize || 20) * 0.65, 28);
+                            return `<div class="absolute max-w-[90%] text-center whitespace-pre-line" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);font-family:${el.font||'Inter'};font-size:${fs}px;color:${el.color||'#FFF'};font-weight:${el.fontWeight||'400'};${el.italic?'font-style:italic':''}">
+                                ${escapeHtml(el.content)}</div>`;
+                        } else if (el.type === 'sticker') {
+                            const sticker = STICKER_CATEGORIES.flatMap(c => c.stickers).find(s => s.id === el.stickerId);
+                            if (!sticker) return '';
+                            return `<div class="absolute" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);width:36px;height:36px">${getStickerSvg(sticker, bgColor)}</div>`;
+                        }
+                        if (el.classes) {
+                            return `<div class="absolute max-w-[90%] text-center" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%)"><div class="${el.classes}" style="font-size:12px">${escapeHtml(el.content)}</div></div>`;
+                        }
+                        return '';
+                    }).join('');
+                    return `<div class="masonry-item" style="position:relative"><a href="single_note.html?id=${post.id}" class="card-thumb block ${bgClass}" style="background-color:${bgColor};height:${height}px;position:relative">${elements}</a>${overlay(post.id)}</div>`;
+                }
+                return `<div class="masonry-item" style="position:relative"><a href="single_note.html?id=${post.id}" class="block bg-white border p-4" style="border-radius:var(--radius-card);border-color:var(--border)">
+                    ${post.headline ? `<h4 class="font-semibold text-sm mb-1">${escapeHtml(post.headline)}</h4>` : ''}
+                    <p class="text-xs line-clamp-3" style="color:var(--text-secondary)">${escapeHtml(post.content)}</p>
+                </a>${overlay(post.id)}</div>`;
+            }).join('');
+
+            // Attach delete handlers
+            if (isOwn) {
+                grid.querySelectorAll('.card-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const postId = btn.dataset.postId;
+                        if (!confirm('Delete this card? This cannot be undone.')) return;
+                        try {
+                            deletePost(postId);
+                            showToast('Card deleted');
+                            // Re-render
+                            const updatedPosts = getPostsByUser(currentUser.id);
+                            document.getElementById('stat-posts').textContent = updatedPosts.length;
+                            renderCardGrid('posts-grid', 'posts-empty', updatedPosts, true);
+                        } catch (err) {
+                            showToast(err.message, true);
+                        }
+                    });
+                });
+            }
+        }
+
+        renderCardGrid('posts-grid', 'posts-empty', myPosts, true);
+        renderCardGrid('liked-grid', 'liked-empty', likedPosts);
+        renderCardGrid('saved-grid', 'saved-empty', savedPosts);
+
+        // Collections
+        function renderCollections() {
+            const collections = getCollectionsByUser(currentUser.id);
+            const grid = document.getElementById('collections-grid');
+            const empty = document.getElementById('collections-empty');
+            if (collections.length === 0) { grid.classList.add('hidden'); empty.classList.remove('hidden'); }
+            else {
+                grid.classList.remove('hidden'); empty.classList.add('hidden');
+                grid.innerHTML = collections.map(c => `
+                    <a href="collection.html?id=${c.id}" class="block bg-white border p-4 hover:shadow-md transition-all" style="border-radius:var(--radius-card);border-color:var(--border)">
+                        <h4 class="font-semibold text-sm mb-1">${escapeHtml(c.name)}</h4>
+                        <p class="text-xs" style="color:var(--text-muted)">${escapeHtml(c.description || '')}</p>
+                        <p class="text-xs mt-2" style="color:var(--text-muted)">${c.cardIds.length} cards</p>
+                    </a>`).join('');
+            }
+        }
+        renderCollections();
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+            });
+        });
+
+        // Focus trap helper
+        function trapFocus(container) {
+            const focusable = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (!focusable.length) return;
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            container._trapHandler = (e) => {
+                if (e.key !== 'Tab') return;
+                if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+                else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+            };
+            container.addEventListener('keydown', container._trapHandler);
+            first.focus();
+        }
+        function releaseFocus(container) {
+            if (container._trapHandler) container.removeEventListener('keydown', container._trapHandler);
+        }
+
+        // Settings Modal
+        const modal = document.getElementById('settings-modal');
+        let prevFocus = null;
+        document.getElementById('settings-gear').addEventListener('click', () => { prevFocus = document.activeElement; modal.classList.remove('hidden'); trapFocus(modal); });
+        document.getElementById('close-settings').addEventListener('click', () => { releaseFocus(modal); modal.classList.add('hidden'); if (prevFocus) prevFocus.focus(); });
+        document.getElementById('settings-overlay').addEventListener('click', () => { releaseFocus(modal); modal.classList.add('hidden'); if (prevFocus) prevFocus.focus(); });
+
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const newName = document.getElementById('input-fullname').value.trim();
+            const newUsername = document.getElementById('input-username').value.trim();
+            if (!newName || !newUsername) { showToast('Name and username required.', true); return; }
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const idx = users.findIndex(u => u.id === currentUser.id);
+            if (idx > -1) {
+                users[idx].fullname = newName;
+                users[idx].username = newUsername;
+                localStorage.setItem('users', JSON.stringify(users));
+                currentUser.fullname = newName;
+                currentUser.username = newUsername;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('avatar').textContent = newName.charAt(0).toUpperCase();
+                document.getElementById('name').textContent = newName;
+                document.getElementById('username-display').textContent = '@' + newUsername;
+                showToast('Settings saved');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            logoutUser();
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('delete-btn').addEventListener('click', () => {
+            if (!confirm('Are you sure? This cannot be undone.')) return;
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            localStorage.setItem('users', JSON.stringify(users.filter(u => u.id !== currentUser.id)));
+            const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+            localStorage.setItem('posts', JSON.stringify(posts.filter(p => p.userId !== currentUser.id)));
+            logoutUser();
+            window.location.href = 'index.html';
+        });
+
+        // New Collection Modal
+        const colModal = document.getElementById('collection-modal');
+        let prevFocus2 = null;
+        document.getElementById('new-collection-btn').addEventListener('click', () => { prevFocus2 = document.activeElement; colModal.classList.remove('hidden'); trapFocus(colModal); });
+        document.getElementById('cancel-collection').addEventListener('click', () => { releaseFocus(colModal); colModal.classList.add('hidden'); if (prevFocus2) prevFocus2.focus(); });
+        document.getElementById('collection-overlay').addEventListener('click', () => { releaseFocus(colModal); colModal.classList.add('hidden'); if (prevFocus2) prevFocus2.focus(); });
+        document.getElementById('create-collection').addEventListener('click', () => {
+            const name = document.getElementById('collection-name').value.trim();
+            if (!name) { showToast('Collection name is required.', true); return; }
+            const desc = document.getElementById('collection-desc').value.trim();
+            createCollection(name, desc);
+            colModal.classList.add('hidden');
+            document.getElementById('collection-name').value = '';
+            document.getElementById('collection-desc').value = '';
+            renderCollections();
+            showToast('Collection created');
+        });
+
+        // Escape to close modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!modal.classList.contains('hidden')) { releaseFocus(modal); modal.classList.add('hidden'); if (prevFocus) prevFocus.focus(); }
+                if (!colModal.classList.contains('hidden')) { releaseFocus(colModal); colModal.classList.add('hidden'); if (prevFocus2) prevFocus2.focus(); }
+            }
+        });
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+
+</html>

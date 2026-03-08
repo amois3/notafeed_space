@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Explore — The Space</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;1,400&family=Syne:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/design-tokens.css" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "accent": "#2B5BFF", "accent-hover": "#1A44E0", "accent-light": "#EEF2FF",
+                        "bg-main": "#F5F4F1", "border-c": "#E8E6E1",
+                        "txt-primary": "#1A1A1A", "txt-secondary": "#6B6B6B", "txt-muted": "#AAAAAA",
+                    },
+                    fontFamily: { "sans": ["Inter", "sans-serif"], "serif": ["Playfair Display", "serif"], "mono": ["JetBrains Mono", "monospace"], "display": ["Syne", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .masonry { columns: 3; column-gap: 12px; padding: 0 20px; }
+        @media (max-width: 1200px) { .masonry { columns: 2; } }
+        @media (max-width: 640px) { .masonry { columns: 1; padding: 0 12px; } }
+        .masonry-item { break-inside: avoid; margin-bottom: 12px; }
+        .card-canvas { border-radius: var(--radius-card); overflow: hidden; position: relative; box-shadow: var(--shadow-card); transition: transform var(--transition-hover), box-shadow var(--transition-hover); }
+        .card-canvas:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-hover); }
+        .card-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px; background: rgba(0,0,0,0.35); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; }
+        .filter-pill { padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition-hover); white-space: nowrap; }
+        .filter-pill.active { background: var(--accent); color: white; }
+        .filter-pill:not(.active) { background: #EFEFED; color: var(--text-secondary); }
+        .nav-link { font-size: 14px; font-weight: 500; color: var(--text-secondary); padding-bottom: 4px; border-bottom: 2px solid transparent; transition: all var(--transition-hover); }
+        .nav-link.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+        .hero-card { border-radius: var(--radius-card); overflow: hidden; position: relative; min-height: 360px; box-shadow: var(--shadow-card-hover); }
+        .drop-cta { border-radius: var(--radius-card); border: 2px dashed var(--border); padding: 40px; text-align: center; }
+        .bottom-nav { display: none; }
+        @media (max-width: 640px) {
+            .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--border); z-index: 100; padding: 8px 0 env(safe-area-inset-bottom, 8px); }
+            .fab-btn { display: none !important; }
+        }
+    </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#2B5BFF">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+
+<body class="font-sans min-h-screen" style="background: var(--bg-main); color: var(--text-primary)">
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 border-b" style="height:56px; background: var(--bg-main); border-color: var(--border)">
+        <div class="max-w-7xl mx-auto h-full px-5 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-6">
+                <a class="flex items-center gap-2 text-accent" href="home.html">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 20C6 4 18 4 22 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/><path d="M2 4C6 20 18 20 22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span class="text-lg font-semibold tracking-wide hidden sm:block" style="color:var(--text-primary)">the space</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-5">
+                    <a class="nav-link" href="home.html">Home</a>
+                    <a class="nav-link active" href="explore.html">Explore</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="p-2 rounded-full hover:bg-accent-light transition-colors" aria-label="Search">
+                    <span class="material-symbols-outlined text-xl" style="color:var(--text-secondary)" aria-hidden="true">search</span>
+                </button>
+                <button class="relative p-2 rounded-full hover:bg-accent-light transition-colors" aria-label="Notifications">
+                    <span class="material-symbols-outlined text-xl" style="color:var(--text-secondary)" aria-hidden="true">notifications</span>
+                </button>
+                <a href="settings.html" id="nav-avatar" class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-xs font-bold text-accent" aria-label="Profile">?</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <div class="max-w-7xl mx-auto px-5 pt-5 pb-4">
+        <div class="flex gap-2 overflow-x-auto no-scrollbar">
+            <button class="filter-pill active">All</button>
+            <button class="filter-pill">Popular</button>
+            <button class="filter-pill">Fresh</button>
+            <button class="filter-pill">#design</button>
+            <button class="filter-pill">#code</button>
+            <button class="filter-pill">#philosophy</button>
+        </div>
+    </div>
+
+    <!-- Hero Block -->
+    <div class="max-w-7xl mx-auto px-5 mb-4" id="hero-container"></div>
+
+    <!-- Canvas Masonry -->
+    <div id="explore-feed" class="masonry max-w-7xl mx-auto"></div>
+
+    <!-- Drop Your Fragment CTA -->
+    <div class="max-w-7xl mx-auto px-5 my-6">
+        <div class="drop-cta flex flex-col items-center">
+            <span class="material-symbols-outlined text-4xl mb-3" style="color:var(--accent)" aria-hidden="true">draw</span>
+            <h3 class="text-xl font-bold mb-2">Drop your own fragment.</h3>
+            <p class="text-sm mb-4" style="color:var(--text-secondary)">Contribute to the collective space.</p>
+            <a href="compose_note.html" class="text-sm font-semibold text-white px-5 py-2.5 bg-accent hover:bg-accent-hover transition-colors" style="border-radius:50px">Create a card</a>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="flex flex-col items-center justify-center py-12 gap-3">
+        <div class="w-1 h-8 rounded-full bg-gradient-to-b from-accent to-transparent animate-bounce"></div>
+        <p class="text-sm font-medium tracking-widest uppercase" style="color:var(--text-muted)">Expanding the canvas...</p>
+    </div>
+
+    <!-- FAB -->
+    <a class="fab-btn fixed z-[100] bg-accent text-white flex items-center justify-center hover:scale-105 transition-transform"
+        href="compose_note.html" aria-label="Create a card"
+        style="bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;box-shadow:var(--shadow-btn-primary)">
+        <span class="material-symbols-outlined" style="font-size:24px" aria-hidden="true">add</span>
+    </a>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="bottom-nav items-center justify-around">
+        <a href="home.html" class="flex flex-col items-center gap-0.5 py-1" style="color:var(--text-muted)">
+            <span class="material-symbols-outlined text-xl" aria-hidden="true">home</span><span class="text-[10px] font-medium">Home</span>
+        </a>
+        <a href="explore.html" class="flex flex-col items-center gap-0.5 py-1 text-accent">
+            <span class="material-symbols-outlined text-xl" aria-hidden="true">explore</span><span class="text-[10px] font-medium">Explore</span>
+        </a>
+        <a href="compose_note.html" class="flex items-center justify-center -mt-4 w-12 h-12 rounded-full bg-accent text-white shadow-lg" aria-label="Create a card">
+            <span class="material-symbols-outlined text-2xl" aria-hidden="true">add</span>
+        </a>
+        <a href="settings.html" class="flex flex-col items-center gap-0.5 py-1" style="color:var(--text-muted)">
+            <span class="material-symbols-outlined text-xl" aria-hidden="true">person</span><span class="text-[10px] font-medium">Profile</span>
+        </a>
+    </nav>
+
+    <script type="module">
+        import { getAllPosts, likePost, isLikedByCurrentUser, getLikesForPost, savePost, isSavedByCurrentUser, showToast, escapeHtml } from './src/posts.js';
+        import { getCurrentUser, getUserById, initDB } from './src/localDb.js';
+        import { STICKER_CATEGORIES, getStickerSvg, isDarkBackground } from './src/stickers.js';
+
+        initDB();
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+            document.getElementById('nav-avatar').textContent = currentUser.fullname.charAt(0).toUpperCase();
+        }
+
+        function renderCanvasElements(elements, bgColor) {
+            return (elements || []).map(el => {
+                if (el.type === 'text') {
+                    const style = `left:${el.left};top:${el.top};transform:translate(-50%,-50%);font-family:${el.font || 'Inter'};font-size:${Math.min(el.fontSize || 20, 48)}px;color:${el.color || '#FFF'};font-weight:${el.fontWeight || '400'};${el.italic ? 'font-style:italic;' : ''}`;
+                    return `<div class="absolute max-w-[90%] text-center whitespace-pre-line" style="${style}">${escapeHtml(el.content)}</div>`;
+                } else if (el.type === 'sticker') {
+                    const sticker = STICKER_CATEGORIES.flatMap(c => c.stickers).find(s => s.id === el.stickerId);
+                    if (!sticker) return '';
+                    return `<div class="absolute" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%);width:48px;height:48px">${getStickerSvg(sticker, bgColor)}</div>`;
+                }
+                if (el.classes) {
+                    return `<div class="absolute max-w-[90%] text-center" style="left:${el.left};top:${el.top};transform:translate(-50%,-50%)"><div class="${el.classes.replace('canvas-element','').replace('cursor-move','')}">${escapeHtml(el.content)}</div></div>`;
+                }
+                return '';
+            }).join('');
+        }
+
+        const allPosts = getAllPosts();
+        const heroContainer = document.getElementById('hero-container');
+        const exploreFeed = document.getElementById('explore-feed');
+
+        function renderCard(post) {
+            const author = getUserById(post.userId);
+            const authorName = author ? author.fullname : 'Unknown';
+            const authorUsername = author ? author.username : 'unknown';
+            const isLiked = isLikedByCurrentUser(post.id);
+            const likesCount = getLikesForPost(post.id).length;
+            const isSaved = isSavedByCurrentUser(post.id);
+
+            if (post.canvasData) {
+                const bgColor = post.canvasData.bgColor || '#FFFFFF';
+                const height = post.cardSize === 'tall' || post.cardSize === 'large' ? 320 : 200;
+                return `<div class="masonry-item">
+                    <div class="card-canvas" style="background-color:${bgColor};height:${height}px">
+                        <a href="single_note.html?id=${post.id}" class="absolute inset-0 z-10"></a>
+                        ${renderCanvasElements(post.canvasData.elements, bgColor)}
+                        <div class="card-overlay z-20">
+                            <a href="user_profile.html?id=${post.userId}" class="flex items-center gap-2 relative z-30">
+                                <div class="w-6 h-6 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-[10px] font-bold text-white border border-white/30">${escapeHtml(authorName.charAt(0))}</div>
+                                <span class="text-xs font-medium text-white">@${escapeHtml(authorUsername)}</span>
+                            </a>
+                            <div class="flex items-center gap-1">
+                                <button class="relative z-30 like-btn flex items-center gap-1 p-1 rounded-full hover:bg-white/20 transition-colors" data-post-id="${post.id}" aria-label="Like">
+                                    <span class="material-symbols-outlined text-sm ${isLiked ? 'text-rose-400' : 'text-white'}" aria-hidden="true">${isLiked ? 'favorite' : 'favorite_border'}</span>
+                                    <span class="text-xs text-white font-medium like-count">${likesCount}</span>
+                                </button>
+                                <button class="relative z-30 save-btn p-1 rounded-full hover:bg-white/20 transition-colors" data-post-id="${post.id}" aria-label="Save">
+                                    <span class="material-symbols-outlined text-sm ${isSaved ? 'text-amber-400' : 'text-white'}" aria-hidden="true">${isSaved ? 'bookmark' : 'bookmark_border'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            return `<div class="masonry-item">
+                <div style="border-radius:var(--radius-card);background:white;border:1px solid var(--border);padding:20px;box-shadow:var(--shadow-card)">
+                    <a href="single_note.html?id=${post.id}">
+                        ${post.headline ? `<h3 class="font-semibold text-[15px] mb-2">${escapeHtml(post.headline)}</h3>` : ''}
+                        <p class="text-sm line-clamp-3" style="color:var(--text-secondary)">${escapeHtml(post.content)}</p>
+                    </a>
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t" style="border-color:var(--border)">
+                        <span class="text-xs" style="color:var(--text-muted)">@${escapeHtml(authorUsername)}</span>
+                        <span class="text-xs" style="color:var(--text-muted)">${likesCount} likes</span>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function wireButtons() {
+            exploreFeed.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    if (!currentUser) { window.location.href = 'login.html'; return; }
+                    const result = likePost(btn.dataset.postId);
+                    const icon = btn.querySelector('.material-symbols-outlined');
+                    const count = btn.querySelector('.like-count');
+                    let c = parseInt(count.textContent, 10) || 0;
+                    if (result.liked) { icon.textContent = 'favorite'; icon.className = 'material-symbols-outlined text-sm text-rose-400'; icon.style.color = ''; count.textContent = c+1; }
+                    else { icon.textContent = 'favorite_border'; icon.className = 'material-symbols-outlined text-sm text-white'; count.textContent = Math.max(0, c-1); }
+                });
+            });
+            exploreFeed.querySelectorAll('.save-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    if (!currentUser) { window.location.href = 'login.html'; return; }
+                    const result = savePost(btn.dataset.postId);
+                    const icon = btn.querySelector('.material-symbols-outlined');
+                    if (result.saved) { icon.textContent = 'bookmark'; icon.className = 'material-symbols-outlined text-sm text-amber-400'; showToast('Card saved'); }
+                    else { icon.textContent = 'bookmark_border'; icon.className = 'material-symbols-outlined text-sm text-white'; }
+                });
+            });
+        }
+
+        function renderExplore(filter) {
+            let posts = [...allPosts];
+
+            // Sort
+            if (filter === 'Popular') {
+                posts.sort((a, b) => getLikesForPost(b.id).length - getLikesForPost(a.id).length);
+            } else if (filter === 'Fresh') {
+                posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            } else if (filter.startsWith('#')) {
+                const tag = filter.slice(1).toLowerCase();
+                posts = posts.filter(p => p.tags && p.tags.some(t => t.toLowerCase() === tag));
+            }
+
+            // Hero: first large/wide card
+            const heroPost = posts.find(p => p.canvasData && (p.cardSize === 'large' || p.cardSize === 'wide')) || posts[0];
+            if (heroPost && heroPost.canvasData) {
+                const bg = heroPost.canvasData.bgColor || '#0D0D0D';
+                const author = getUserById(heroPost.userId);
+                heroContainer.innerHTML = `
+                <div class="hero-card" style="background-color:${bg}">
+                    <a href="single_note.html?id=${heroPost.id}" class="absolute inset-0 z-10"></a>
+                    ${renderCanvasElements(heroPost.canvasData.elements, bg)}
+                    <div class="card-overlay z-20" style="padding:16px 20px">
+                        <a href="user_profile.html?id=${heroPost.userId}" class="flex items-center gap-3 relative z-30">
+                            <div class="w-8 h-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-sm font-bold text-white border border-white/30">${author ? escapeHtml(author.fullname.charAt(0)) : '?'}</div>
+                            <span class="text-sm font-medium text-white">@${author ? escapeHtml(author.username) : 'unknown'}</span>
+                        </a>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-white/70 font-medium">${getLikesForPost(heroPost.id).length} likes</span>
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                heroContainer.innerHTML = '';
+            }
+
+            // Rest of the feed
+            const restPosts = posts.filter(p => !heroPost || p.id !== heroPost.id);
+            exploreFeed.innerHTML = restPosts.map(renderCard).join('');
+            wireButtons();
+        }
+
+        renderExplore('All');
+        document.getElementById('loading-indicator').style.display = 'none';
+
+        // Filter pills
+        document.querySelectorAll('.filter-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderExplore(btn.textContent.trim());
+            });
+        });
+
+        // Search redirect
+        const searchBtn = document.querySelector('[aria-label="Search"]');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => { window.location.href = 'search.html'; });
+        }
+    </script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
+</body>
+
+</html>
